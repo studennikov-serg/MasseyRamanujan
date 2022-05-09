@@ -1,5 +1,6 @@
 import math
 import mpmath
+from gmpy2 import *
 
 from .RelativeGCFEnumerator import RelativeGCFEnumerator
 from collections import namedtuple
@@ -39,9 +40,9 @@ def check_for_fr(an_iterator, bn_iterator, an_deg, burst_number=BURST_NUMBER, mi
     for i, (a_i, b_i) in enumerate(zip(an_iterator, bn_iterator)):
         tmp_a = q
         tmp_b = p
-
-        q = a_i * q + b_i * prev_q
-        p = a_i * p + b_i * prev_p
+        a_i_z, b_i_z = mpz(a_i), mpz(b_i)
+        q = a_i_z * q + b_i_z * prev_q
+        p = a_i_z * p + b_i_z * prev_p
 
         prev_q = tmp_a
         prev_p = tmp_b
@@ -51,7 +52,7 @@ def check_for_fr(an_iterator, bn_iterator, an_deg, burst_number=BURST_NUMBER, mi
             next_gcd_calculation += burst_number
 
             calculated_values.append(
-                mpmath.log(mpmath.mpf(math.gcd(p, q))) / mpmath.mpf(i) +
+                mpmath.log(mpf(gcd(p, q))) / mpmath.mpf(i) +
                 an_deg * (-mpmath.log(i) + 1)
             )
 
