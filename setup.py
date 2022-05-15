@@ -10,6 +10,7 @@ setuptools.setup(
         'kiwisolver>=1.1.0',
         'matplotlib>=3.2.0',
         'mpmath>=1.1.0',
+        'gmpy2>=2.1.2',
         'numpy>=1.18.1',
         'ordered-set>=3.1.1',
         'pandas>=1.0.1',
@@ -19,7 +20,7 @@ setuptools.setup(
         'python-dateutil>=2.8.1',
         'pytz>=2019.3',
         'six>=1.14.0',
-        'sympy>=1.5.1',
+        'sympy=>1.5.1',
         'ortools>=7.4.7247',
         'pybloom-live'
     ]

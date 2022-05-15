@@ -1,6 +1,6 @@
 import math
 import mpmath
-from gmpy2 import *
+from gmpy2 import mpz, gcd
 
 from .RelativeGCFEnumerator import RelativeGCFEnumerator
 from collections import namedtuple
@@ -52,7 +52,7 @@ def check_for_fr(an_iterator, bn_iterator, an_deg, burst_number=BURST_NUMBER, mi
             next_gcd_calculation += burst_number
 
             calculated_values.append(
-                mpmath.log(mpf(gcd(p, q))) / mpmath.mpf(i) +
+                mpmath.log(mpmath.mpf(gcd(p, q))) / mpmath.mpf(i) +
                 an_deg * (-mpmath.log(i) + 1)
             )
 
