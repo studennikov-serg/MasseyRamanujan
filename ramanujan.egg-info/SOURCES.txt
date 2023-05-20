@@ -1,0 +1,13 @@
+README.md
+setup.cfg
+setup.py
+ramanujan/CachedSeries.py
+ramanujan/LHSHashTable.py
+ramanujan/__init__.py
+ramanujan/constants.py
+ramanujan/multiprocess_enumeration.py
+ramanujan.egg-info/PKG-INFO
+ramanujan.egg-info/SOURCES.txt
+ramanujan.egg-info/dependency_links.txt
+ramanujan.egg-info/requires.txt
+ramanujan.egg-info/top_level.txt

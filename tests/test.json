@@ -1,0 +1,1 @@
+{"an_coefs": [[10, 10], [27, 27], [2, 64], [-250, 250]], "bn_coefs": [[-9, -9], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], "enumerator": "FREnumerator", "domain_type": "ExplicitCartesianProductPolyDomain", "only_balanced_degrees": false, "use_strict_convergence_cond": false, "const_list": [["zeta", 3], "pi"]}

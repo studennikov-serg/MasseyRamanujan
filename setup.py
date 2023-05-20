@@ -20,7 +20,7 @@ setuptools.setup(
         'python-dateutil>=2.8.1',
         'pytz>=2019.3',
         'six>=1.14.0',
-        'sympy=>1.5.1',
+        'sympy>=1.5.1',
         'ortools>=7.4.7247',
         'pybloom-live'
     ]

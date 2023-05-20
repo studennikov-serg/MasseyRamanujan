@@ -1,12 +1,10 @@
-import sys
 import math
 import mpmath
-from gmpy2 import mpz, gcd, to_binary, fmma, mpfr, log
+from gmpy2 import mpz, gcd
 
 from .RelativeGCFEnumerator import RelativeGCFEnumerator
 from collections import namedtuple
 from ramanujan.utils.utils import get_reduced_fraction
-from time import monotonic
 
 CONVERGENCE_THRESHOLD = 0.1
 BURST_NUMBER = 200
@@ -15,23 +13,10 @@ BURST_NUMBER = 200
 # We specifically use 1402 to ensure that no items of an/bn are calculated and not used in GCD calculations
 FIRST_ENUMERATION_MAX_DEPTH = 1_402
 MIN_ITERS = 1
-CHECKPOINT_INTERVAL = 1 * 60 * 10 # 10 minutes
 
 Match = namedtuple('Match', 'rhs_an_poly rhs_bn_poly')
 RefinedMatch = namedtuple('RefinedMatch', 'rhs_an_poly rhs_bn_poly val c_top c_bot precision')
 
-gcds = dict()
-from hashlib import sha256
-def print_dup():
- print('duplicated gcds:')
- zero_vals, nonzero_vals = 0, 0
- for i in gcds.values():
-  if i > 0:
-   nonzero_vals += 1
-  else:
-   zero_vals += 1
- print(nonzero_vals / (nonzero_vals + zero_vals) * 100)
- input()
 
 def check_for_fr(an_iterator, bn_iterator, an_deg, burst_number=BURST_NUMBER, min_iters=MIN_ITERS):
     """
@@ -39,38 +24,36 @@ def check_for_fr(an_iterator, bn_iterator, an_deg, burst_number=BURST_NUMBER, mi
     We've noticed that conjectures tends to have a GCD that grows in a super exponential manner (we call that Factorial
     Reduction).
     This function test if a GCF has factorial reduction.
-        """
+    """
     calculated_values = []
     num_of_calculated_vals = 0
+
     prev_q = 0
     q = 1
     prev_p = 1
+    
     p = next(an_iterator)  # will place a[0] to p
     next(bn_iterator)  # b0 is discarded
+
     next_gcd_calculation = burst_number if burst_number >= min_iters else min_iters
+
     for i, (a_i, b_i) in enumerate(zip(an_iterator, bn_iterator)):
         tmp_a = q
         tmp_b = p
         a_i_z, b_i_z = mpz(a_i), mpz(b_i)
-        #q = a_i_z * q + b_i_z * prev_q
-        q = fmma(a_i_z, q, b_i_z, prev_q)
-        #p = a_i_z * p + b_i_z * prev_p
-        p = fmma(a_i_z, p, b_i_z, prev_p)
+        q = a_i_z * q + b_i_z * prev_q
+        p = a_i_z * p + b_i_z * prev_p
 
         prev_q = tmp_a
         prev_p = tmp_b
-        #gcd_val = (sha256(to_binary(min(p, q))).hexdigest(), sha256(to_binary(max(p, q))).hexdigest())
-        #if gcd_val in gcds:
-        # gcds[gcd_val] += 1
-        #else:
-        # gcds[gcd_val] = 0
+
         if i == next_gcd_calculation:
             num_of_calculated_vals += 1
             next_gcd_calculation += burst_number
 
             calculated_values.append(
-                log(mpfr(gcd(p, q))) / mpfr(i) +
-                an_deg * (-log(i) + 1)
+                mpmath.log(mpmath.mpf(gcd(p, q))) / mpmath.mpf(i) +
+                an_deg * (-mpmath.log(i) + 1)
             )
 
             # The calculated value will converge for GCFs that have FR, but it will not happen monotonically.
@@ -88,22 +71,6 @@ def check_for_fr(an_iterator, bn_iterator, an_deg, burst_number=BURST_NUMBER, mi
 
     return False, i
 
-import pickle
-def save_state(data):
-    with open('state', 'wb') as file:
-        pickle.dump(data, file)
-        #print_dup()
-        print('Checkpoint: state saved')
-
-from os.path import exists
-def checkpointed():
-    return exists('state')
-
-def load_state():
-    with open('state', 'rb') as file:
-        data = pickle.load(file)
-        print('checkpoint: state loaded')
-        return data
 
 class FREnumerator(RelativeGCFEnumerator):
     """
@@ -121,29 +88,14 @@ class FREnumerator(RelativeGCFEnumerator):
         """
         Test all GCFs in the domain for FR.
         """
-        if not checkpointed():
-            results = []  # list of intermediate results        
-            prev_i = 0
-        else:
-            results, prev_i = load_state()
-        checkpoint_time = monotonic() + CHECKPOINT_INTERVAL
-        for i, (an_iter, bn_iter, metadata) in enumerate(self._iter_domains_with_cache(FIRST_ENUMERATION_MAX_DEPTH)):
-            if i < prev_i:
-                #print('skip step ',i,' to reach checkpoint')
-                continue
-            if i & 0xff == 0: # performance optimization
-                this_time = monotonic()
-                if this_time >= checkpoint_time:
-                    print('Time to checkpoint')
-                    checkpoint_time = this_time + CHECKPOINT_INTERVAL
-                    save_state(( results, i ))
+        results = []  # list of intermediate results        
+        for an_iter, bn_iter, metadata in self._iter_domains_with_cache(FIRST_ENUMERATION_MAX_DEPTH):
             has_fr, items_calculated = check_for_fr(an_iter, bn_iter, self.poly_domains.get_an_degree(metadata.an_coef))
             if has_fr:
                 if print_results:
                     print(f"found a GCF with FR:\n\tan: {metadata.an_coef}\n\tbn: {metadata.bn_coef}")
                 # Key is useless here :)
                 results.append(Match(metadata.an_coef, metadata.bn_coef))
-        print('count ',i)
 
         return results
 
